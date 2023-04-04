@@ -17,7 +17,6 @@ async function handleRequest(request) {
   }
 
   const url = new URL(request.url);
-  console.log(url.pathname)
   if (url.pathname === '/v1/chat/completions') {
     var path="chat/completions"
   } else if (url.pathname === '/v1/completions') {
@@ -50,7 +49,6 @@ async function handleRequest(request) {
   };
 
   const response = await fetch(fetchAPI, payload);
-  console.log(response.headers)
   return response
 
 }
