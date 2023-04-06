@@ -11,7 +11,7 @@
 3. 将 [cf-openai-azure-proxy.js](./cf-openai-azure-proxy.js) 复制并粘贴到 Cloudflare Worker 编辑器中
 4. 修改对应的 resourceName 和 deployName
 5. 保存并部署 Cloudflare Worker
-6. **必须**绑定自定义域名: 在 Worker 详情页 -> Trigger -> Custom Domains 中为这个 Worker 添加一个自定义域名
+6. https://github.com/haibbo/cf-openai-azure-proxy/issues/3 **可选**绑定自定义域名: 在 Worker 详情页 -> Trigger -> Custom Domains 中为这个 Worker 添加一个自定义域名
 
 ### 使用说明
 
@@ -25,3 +25,9 @@
 <img width="339" src="https://user-images.githubusercontent.com/1295315/229820705-ab2ad1d1-8795-4670-97b4-16a0f9fdebba.png" alt="opencat" />
 
 我已经尝试了多种客户端, 如果遇到其他客户端有问题, 欢迎创建issue.
+
+QA:
+- 我没有服务器可以使用吗?
+  - 这段脚本跑在Cloudflare Worker, 不需要服务器, 不需要绑卡, 每天10W次请求 免费
+- 我没有自己的域名可以使用吗?
+  - 也可以, 参考: https://github.com/haibbo/cf-openai-azure-proxy/issues/3
