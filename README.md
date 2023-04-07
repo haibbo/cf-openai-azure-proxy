@@ -1,7 +1,7 @@
 # cf-openai-azure-proxy
 
-<a href="./README.md">English</a> |
-<a href="./README.zh-cn.md">中文</a>
+<a href="./README_en.md">English</a> |
+<a href="./README.md">中文</a>
 
 > 大多数 OpenAI 客户端不支持 Azure OpenAI Service，但Azure OpenAI Service的申请和绑卡都非常简单，并且还提供了免费的额度。此脚本使用免费的 Cloudflare Worker 作为代理，使得支持 OpenAI 的客户端可以直接使用 Azure OpenAI Service。
 
