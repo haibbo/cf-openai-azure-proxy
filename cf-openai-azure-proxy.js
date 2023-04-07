@@ -48,9 +48,32 @@ async function handleRequest(request) {
     body: typeof body === 'object' ? JSON.stringify(body) : '{}',
   };
 
+  let { readable, writable } = new TransformStream()
   const response = await fetch(fetchAPI, payload);
-  return response
+  stream(response.body, writable);
+  return new Response(readable, response);
 
+}
+
+// Add new line
+async function stream(readable, writable) {
+  const reader = readable.getReader();
+  const writer = writable.getWriter();
+  const encoder = new TextEncoder();
+
+  const newline = "\n";
+  const encodedNewline = encoder.encode(newline);
+
+  while (true) {
+    let { value, done } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    await writer.write(value);
+  }
+  await writer.write(encodedNewline);
+  await writer.close();
 }
 
 async function handleModels(request) {
