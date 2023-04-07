@@ -49,6 +49,25 @@ async function handleRequest(request) {
   };
 
   const response = await fetch(fetchAPI, payload);
+  
+  const contentType = response.headers.get("Content-Type");
+  if (contentType && contentType.toLowerCase() === "text/event-stream") {
+    // Read the response body as text
+    const responseBody = await response.text();
+
+    // Add a newline character to the end of the response body
+    const modifiedBody = responseBody + "\n";
+
+    // Create a new response with the modified body and original headers
+    const modifiedResponse = new Response(modifiedBody, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+
+    return modifiedResponse;
+  }
+  
   return response
 
 }
