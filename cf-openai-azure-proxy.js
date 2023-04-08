@@ -55,24 +55,44 @@ async function handleRequest(request) {
 
 }
 
-// Add new line
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// support printer mode and add newline
 async function stream(readable, writable) {
   const reader = readable.getReader();
   const writer = writable.getWriter();
-  const encoder = new TextEncoder();
 
+  // const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+// let decodedValue = decoder.decode(value);
   const newline = "\n";
   const encodedNewline = encoder.encode(newline);
 
+  let buffer = "";
   while (true) {
     let { value, done } = await reader.read();
     if (done) {
       break;
     }
+    buffer += decoder.decode(value);
+    let lines = buffer.split("\n");
 
-    await writer.write(value);
+    // Loop through all but the last line, which may be incomplete.
+    for (let i = 0; i < lines.length - 1; i++) {
+      await writer.write(encoder.encode(lines[i] + newline));
+      await sleep(15);
+    }
+
+    buffer = lines[lines.length - 1];
   }
-  await writer.write(encodedNewline);
+
+  if (buffer) {
+    await writer.write(encoder.encode(buffer));
+  }
+  await writer.write(encodedNewline)
   await writer.close();
 }
 
