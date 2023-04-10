@@ -69,6 +69,7 @@ async function stream(readable, writable) {
   const decoder = new TextDecoder();
 // let decodedValue = decoder.decode(value);
   const newline = "\n";
+  const delimiter = "\n\n"
   const encodedNewline = encoder.encode(newline);
 
   let buffer = "";
@@ -78,12 +79,12 @@ async function stream(readable, writable) {
       break;
     }
     buffer += decoder.decode(value, { stream: true }); // stream: true is important here,fix the bug of incomplete line
-    let lines = buffer.split("\n");
+    let lines = buffer.split(delimiter);
 
     // Loop through all but the last line, which may be incomplete.
     for (let i = 0; i < lines.length - 1; i++) {
-      await writer.write(encoder.encode(lines[i] + newline));
-      await sleep(15);
+      await writer.write(encoder.encode(lines[i] + delimiter));
+      await sleep(30);
     }
 
     buffer = lines[lines.length - 1];
