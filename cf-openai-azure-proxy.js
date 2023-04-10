@@ -77,7 +77,7 @@ async function stream(readable, writable) {
     if (done) {
       break;
     }
-    buffer += decoder.decode(value);
+    buffer += decoder.decode(value, { stream: true }); // stream: true is important here,fix the bug of incomplete line
     let lines = buffer.split("\n");
 
     // Loop through all but the last line, which may be incomplete.
