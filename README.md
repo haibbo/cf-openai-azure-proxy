@@ -12,9 +12,19 @@
 1. 注册并登录到 Cloudflare 账户
 2. 创建一个新的 Cloudflare Worker
 3. 将 [cf-openai-azure-proxy.js](./cf-openai-azure-proxy.js) 复制并粘贴到 Cloudflare Worker 编辑器中
-4. 修改对应的 resourceName 和 deployName
-5. 保存并部署 Cloudflare Worker
-6. https://github.com/haibbo/cf-openai-azure-proxy/issues/3 **可选**绑定自定义域名: 在 Worker 详情页 -> Trigger -> Custom Domains 中为这个 Worker 添加一个自定义域名
+4. 修改对应的 resourceName 和 mapper
+   
+   **mapper设置例子**：如果你在azure上部署的gpt-3.5-turbo和gpt-4的模型deployment name为gpt35和gpt4，那么mapper按照如下设置
+
+   ```
+   const mapper:any = {
+     'gpt-3.5-turbo': 'gpt35',
+     'gpt-4': 'gpt4' 
+   };
+   ```
+   其他的map规则直接按这样的格式续写即可
+6. 保存并部署 Cloudflare Worker
+7. https://github.com/haibbo/cf-openai-azure-proxy/issues/3 **可选**绑定自定义域名: 在 Worker 详情页 -> Trigger -> Custom Domains 中为这个 Worker 添加一个自定义域名
 
 ### 使用说明
 
