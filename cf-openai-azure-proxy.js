@@ -1,8 +1,8 @@
 // The name of your Azure OpenAI Resource.
-const resourceName="your-resource-name"
+const resourceName=RESOURCE_NAME
 
 // The deployment name you chose when you deployed the model.
-const deployName="deployment-name"
+const deployName=DEPLOY_NAME
 
 const apiVersion="2023-03-15-preview"
 
