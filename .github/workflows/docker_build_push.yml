@@ -1,0 +1,68 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: haibbo/cf-openai-azure-proxy:${{ github.ref_name }}
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: |
+          haibbo/cf-openai-azure-proxy:${{ github.ref_name }}
+          haibbo/cf-openai-azure-proxy:latest
+        platforms: linux/amd64,linux/arm64/v8
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTIONS_RELEASE_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Release notes for ${{ github.ref }}
+
+          ```sh
+          docker run -d -p 8787:8787 -t cf-azure-openai-proxy \
+          --env RESOURCE_NAME=codegpt \
+          --env DEPLOY_NAME=gpt3 \
+          haibbo/cf-openai-azure-proxy:latest
+          ```
+
+
+          Docker image is available at:
+          - `haibbo/cf-openai-azure-proxy:${{ github.ref_name }}`
+          - `haibbo/cf-openai-azure-proxy:latest`
+
+          Enjoy!
+        draft: false
+        prerelease: false
+
+
+
