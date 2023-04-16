@@ -1,11 +1,12 @@
-// The name of your Azure OpenAI Resource.
-const resourceName=RESOURCE_NAME
+// The name of your Azure OpenAI Resource for GPT-3.5 and GPT-4.
+const resourceNameGPT35 = RESOURCE_NAME_GPT35;
+const resourceNameGPT4 = RESOURCE_NAME_GPT4;
 
-// The deployment name you chose when you deployed the model.
-const deployName=DEPLOY_NAME
+// The deployment name you chose when you deployed the model for GPT-3.5 and GPT-4.
+const deployNameGPT35 = DEPLOY_NAME_GPT35;
+const deployNameGPT4 = DEPLOY_NAME_GPT4;
 
-const apiVersion="2023-03-15-preview"
-
+const apiVersion = "2023-03-15-preview";
 
 addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
@@ -27,11 +28,16 @@ async function handleRequest(request) {
     return new Response('404 Not Found', { status: 404 })
   }
  
-  const fetchAPI = `https://${resourceName}.openai.azure.com/openai/deployments/${deployName}/${path}?api-version=${apiVersion}`
+  
   let body;
   if (request.method === 'POST') {
     body = await request.json();
   }
+  const modelName = body && body.model ? body.model : "gpt-3.5-turbo";
+  const { resourceName, deployName } = getModelMapper(modelName);
+
+  const fetchAPI = `https://${resourceName}.openai.azure.com/openai/deployments/${deployName}/${path}?api-version=${apiVersion}`
+  
   const authKey = request.headers.get('Authorization');
   if (!authKey) {
     return new Response("Not allowed", {
@@ -57,6 +63,16 @@ async function handleRequest(request) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getModelMapper(model) {
+  if (model === "gpt-3.5-turbo") {
+    return { resourceName: resourceNameGPT35, deployName: deployNameGPT35 };
+  } else if (model === "gpt-4") {
+    return { resourceName: resourceNameGPT4, deployName: deployNameGPT4 };
+  } else {
+    throw new Error("Invalid model specified");
+  }
 }
 
 // support printer mode and add newline
