@@ -10,21 +10,31 @@ This script proxies requests to Azure OpenAI Service for OpenAI clients. The cod
 Register and log in to your Cloudflare account.
 - Create a new Cloudflare Worker.
 - Copy and paste cf-openai-azure-proxy.js into the Cloudflare Worker editor.
-- Modify the corresponding "resourceName" and "mapper".
-
-  **Mapper configuration example**: If you have deployed the GPT-3.5 Turbo and GPT-4 models on Azure with deployment names 'gpt35' and 'gpt4', respectively, then the mapper should be configured as follows.
-  ```
-  const mapper:any = {
-    'gpt-3.5-turbo': 'gpt35',
-    'gpt-4': 'gpt4' 
-  };
-  ```
-   Other map rules can be continued directly in this format.
+- Adjust the values of **resourceName** and **deployName** by either direct modification or using environment variables..
 - Save and deploy the Cloudflare Worker.
 - https://github.com/haibbo/cf-openai-azure-proxy/issues/3 Optional: Bind a custom domain name: Add a custom domain name for this worker in the Worker details page -> Trigger -> Custom Domains.
 
 ## Instructions
-For step 4, resourceName and deployName must be selected correctly. Log in to the Azure backend:
+First obtain the resourceName and deployName, and log in to the Azure portal:
+![azure](https://user-images.githubusercontent.com/1295315/229705215-e0556c99-957f-4d98-99a6-1c51254110b9.png)
+
+#### There are two ways to do this:
+- Directly modify their values, such as:
+```js
+// The name of your Azure OpenAI Resource.
+const resourceName="codegpt"
+
+  const mapper:any = {
+    'gpt-3.5-turbo': 'gpt35',
+    'gpt-4': 'gpt4' 
+  };
+```
+**Mapper configuration example**: If you have deployed the GPT-3.5 Turbo and GPT-4 models on Azure with deployment names 'gpt35' and 'gpt4', respectively, then the mapper should be configured as follows.
+Other map rules can be continued directly in this format.
+
+
+- go to the Cloudflare Worker console, navigate to Workers script > Settings > Add variable under Environment Variables.
+<img width="777" src="https://user-images.githubusercontent.com/1295315/232183839-b4baa414-76d4-4ccd-8d27-440edfab1404.png" alt="env" />
 
 ## Client
 Take OpenCat as an example: fill in the custom API domain name with the domain name bound in step 6:

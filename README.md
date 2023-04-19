@@ -12,25 +12,31 @@
 1. 注册并登录到 Cloudflare 账户
 2. 创建一个新的 Cloudflare Worker
 3. 将 [cf-openai-azure-proxy.js](./cf-openai-azure-proxy.js) 复制并粘贴到 Cloudflare Worker 编辑器中
-4. 修改对应的 resourceName 和 mapper
-   
-   **mapper设置例子**：如果你在azure上部署的gpt-3.5-turbo和gpt-4的模型deployment name为gpt35和gpt4，那么mapper按照如下设置
+4. 通过修改或环境变量调整 resourceName 和 deployName 的值
+5. 保存并部署 Cloudflare Worker
+6. https://github.com/haibbo/cf-openai-azure-proxy/issues/3 **可选**绑定自定义域名: 在 Worker 详情页 -> Trigger -> Custom Domains 中为这个 Worker 添加一个自定义域名
 
-   ```
-   const mapper:any = {
-     'gpt-3.5-turbo': 'gpt35',
-     'gpt-4': 'gpt4' 
-   };
-   ```
-   其他的map规则直接按这样的格式续写即可
-6. 保存并部署 Cloudflare Worker
-7. https://github.com/haibbo/cf-openai-azure-proxy/issues/3 **可选**绑定自定义域名: 在 Worker 详情页 -> Trigger -> Custom Domains 中为这个 Worker 添加一个自定义域名
 
 ### 使用说明
 
-第四步中的 resourceName 和 deployName, 必须要选对, 登录到Azure的后台:
+先得到 resourceName 和 deployName, 登录到Azure的后台:
 
 ![azure](https://user-images.githubusercontent.com/1295315/229705215-e0556c99-957f-4d98-99a6-1c51254110b9.png)
+
+#### 这里有两种做法:
+- 直接修改他们的值, 如:
+```js
+// The name of your Azure OpenAI Resource.
+const resourceName="codegpt"
+
+const mapper:any = {
+     'gpt-3.5-turbo': 'gpt35',
+     'gpt-4': 'gpt4' 
+   };
+其他的map规则直接按这样的格式续写即可
+```
+- 或者通过 cloudflare worker 控制台, 进入 Workers script > Settings > Add variable under Environment Variables.
+<img width="777" src="https://user-images.githubusercontent.com/1295315/232183839-b4baa414-76d4-4ccd-8d27-440edfab1404.png" alt="env" />
 
 ### 客户端 
 以 OpenCat 为例: 自定义 API 域名填写 第六步绑定的域名:
@@ -44,3 +50,4 @@ QA:
   - 这段脚本跑在Cloudflare Worker, 不需要服务器, 不需要绑卡, 每天10W次请求 免费
 - 我没有自己的域名可以使用吗?
   - 也可以, 参考: https://github.com/haibbo/cf-openai-azure-proxy/issues/3
+

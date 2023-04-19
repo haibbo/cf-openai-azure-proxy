@@ -1,7 +1,8 @@
 // The name of your Azure OpenAI Resource.
-const resourceName="your-resource-name"
+const resourceName=RESOURCE_NAME
 
 // The deployment name you chose when you deployed the model.
+
 // const deployName="deployment-name"
 // The mapping of model name.
 const mapper = {
@@ -9,6 +10,8 @@ const mapper = {
   'gpt-4': 'gpt4' 
   // Other mapping rules can be added here.
 };
+
+
 const apiVersion="2023-03-15-preview"
 
 
