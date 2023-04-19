@@ -36,7 +36,7 @@ const mapper:any = {
 其他的map规则直接按这样的格式续写即可
 ```
 - 或者通过 cloudflare worker 控制台, 进入 Workers script > Settings > Add variable under Environment Variables.
-<img width="777" src="https://user-images.githubusercontent.com/1295315/232183839-b4baa414-76d4-4ccd-8d27-440edfab1404.png" alt="env" />
+<img width="777" src="https://user-images.githubusercontent.com/1295315/233108978-bca97ee8-33c9-42e2-a05b-2b15f2e2078f.png" alt="env" />
 
 ### 客户端 
 以 OpenCat 为例: 自定义 API 域名填写 第六步绑定的域名:

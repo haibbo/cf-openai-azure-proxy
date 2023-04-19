@@ -34,7 +34,7 @@ Other map rules can be continued directly in this format.
 
 
 - go to the Cloudflare Worker console, navigate to Workers script > Settings > Add variable under Environment Variables.
-<img width="777" src="https://user-images.githubusercontent.com/1295315/232183839-b4baa414-76d4-4ccd-8d27-440edfab1404.png" alt="env" />
+<img width="777" src="https://user-images.githubusercontent.com/1295315/233108978-bca97ee8-33c9-42e2-a05b-2b15f2e2078f.png" alt="env" />
 
 ## Client
 Take OpenCat as an example: fill in the custom API domain name with the domain name bound in step 6:

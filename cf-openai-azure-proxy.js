@@ -2,17 +2,13 @@
 const resourceName=RESOURCE_NAME
 
 // The deployment name you chose when you deployed the model.
-
-// const deployName="deployment-name"
-// The mapping of model name.
 const mapper = {
-  'gpt-3.5-turbo': 'gpt35',
-  'gpt-4': 'gpt4' 
-  // Other mapping rules can be added here.
+    'gpt-3.5-turbo': DEPLOY_NAME_GPT35,
+    'gpt-4': DEPLOY_NAME_GPT4
 };
 
-
 const apiVersion="2023-03-15-preview"
+
 
 
 addEventListener("fetch", (event) => {
@@ -34,23 +30,22 @@ async function handleRequest(request) {
   } else {
     return new Response('404 Not Found', { status: 404 })
   }
-  
-  // Get the value of the model field and perform mapping.
-  let deployName;
+
   let body;
   if (request.method === 'POST') {
     body = await request.json();
-    const modelName = body?.model;
-    if (modelName) {
-      deployName = mapper[modelName] || modelName;
-    }
   }
- 
+
+  const modelName = body?.model;  
+  const deployName = mapper[modelName] || '' 
+
+  if (deployName === '') {
+    return new Response('Missing model mapper', {
+        status: 403
+    });
+  }
   const fetchAPI = `https://${resourceName}.openai.azure.com/openai/deployments/${deployName}/${path}?api-version=${apiVersion}`
-  // let body;
-  // if (request.method === 'POST') {
-  //   body = await request.json();
-  // }
+
   const authKey = request.headers.get('Authorization');
   if (!authKey) {
     return new Response("Not allowed", {
@@ -119,8 +114,12 @@ async function stream(readable, writable) {
 async function handleModels(request) {
   const data = {
     "object": "list",
-    "data": [ {
-      "id": "gpt-3.5-turbo",
+    "data": []  
+  };
+
+  for (let key in mapper) {
+    data.data.push({
+      "id": key,
       "object": "model",
       "created": 1677610602,
       "owned_by": "openai",
@@ -138,10 +137,11 @@ async function handleModels(request) {
         "group": null,
         "is_blocking": false
       }],
-      "root": "gpt-3.5-turbo",
+      "root": key,
       "parent": null
-    }]
-  };
+    });  
+  }
+
   const json = JSON.stringify(data, null, 2);
   return new Response(json, {
     headers: { 'Content-Type': 'application/json' },
@@ -157,3 +157,4 @@ async function handleOPTIONS(request) {
       }
     })
 }
+
