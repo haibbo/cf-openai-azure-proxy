@@ -16,6 +16,7 @@
 5. 保存并部署 Cloudflare Worker
 6. https://github.com/haibbo/cf-openai-azure-proxy/issues/3 **可选**绑定自定义域名: 在 Worker 详情页 -> Trigger -> Custom Domains 中为这个 Worker 添加一个自定义域名
 
+
 ### 使用说明
 
 先得到 resourceName 和 deployName, 登录到Azure的后台:
@@ -28,8 +29,11 @@
 // The name of your Azure OpenAI Resource.
 const resourceName="codegpt"
 
-// The deployment name you chose when you deployed the model.
-const deployName="gpt3
+const mapper:any = {
+     'gpt-3.5-turbo': 'gpt35',
+     'gpt-4': 'gpt4' 
+   };
+其他的map规则直接按这样的格式续写即可
 ```
 - 或者通过 cloudflare worker 控制台, 进入 Workers script > Settings > Add variable under Environment Variables.
 <img width="777" src="https://user-images.githubusercontent.com/1295315/232183839-b4baa414-76d4-4ccd-8d27-440edfab1404.png" alt="env" />

@@ -24,9 +24,15 @@ First obtain the resourceName and deployName, and log in to the Azure portal:
 // The name of your Azure OpenAI Resource.
 const resourceName="codegpt"
 
-// The deployment name you chose when you deployed the model.
-const deployName="gpt3
+  const mapper:any = {
+    'gpt-3.5-turbo': 'gpt35',
+    'gpt-4': 'gpt4' 
+  };
 ```
+**Mapper configuration example**: If you have deployed the GPT-3.5 Turbo and GPT-4 models on Azure with deployment names 'gpt35' and 'gpt4', respectively, then the mapper should be configured as follows.
+Other map rules can be continued directly in this format.
+
+
 - go to the Cloudflare Worker console, navigate to Workers script > Settings > Add variable under Environment Variables.
 <img width="777" src="https://user-images.githubusercontent.com/1295315/232183839-b4baa414-76d4-4ccd-8d27-440edfab1404.png" alt="env" />
 
