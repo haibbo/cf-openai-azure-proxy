@@ -9,8 +9,6 @@ const mapper = {
 
 const apiVersion="2023-03-15-preview"
 
-
-
 addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
 });
@@ -62,8 +60,14 @@ async function handleRequest(request) {
     body: typeof body === 'object' ? JSON.stringify(body) : '{}',
   };
 
-  let { readable, writable } = new TransformStream()
   const response = await fetch(fetchAPI, payload);
+
+  // Since Azure has fixed gpt-3's printer effect, do not have to stream it.
+  if (modelName.startsWith('gpt-3') || body?.stream != true){
+    return response
+  } 
+
+  let { readable, writable } = new TransformStream()
   stream(response.body, writable);
   return new Response(readable, response);
 
@@ -98,7 +102,7 @@ async function stream(readable, writable) {
     // Loop through all but the last line, which may be incomplete.
     for (let i = 0; i < lines.length - 1; i++) {
       await writer.write(encoder.encode(lines[i] + delimiter));
-      await sleep(30);
+      await sleep(50);
     }
 
     buffer = lines[lines.length - 1];
