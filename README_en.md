@@ -15,8 +15,9 @@ Register and log in to your Cloudflare account.
 - https://github.com/haibbo/cf-openai-azure-proxy/issues/3 Optional: Bind a custom domain name: Add a custom domain name for this worker in the Worker details page -> Trigger -> Custom Domains.
 
 ## Instructions
-First obtain the resourceName and deployName, and log in to the Azure portal:
-![azure](https://user-images.githubusercontent.com/1295315/229705215-e0556c99-957f-4d98-99a6-1c51254110b9.png)
+First obtain the resourceName and deployment mapper, and log in to the Azure portal:
+
+<img width="777" src="https://user-images.githubusercontent.com/1295315/233124125-1ea95665-ffab-4b5c-a7ba-26f31f1bb0b3.png" alt="env" />
 
 #### There are two ways to do this:
 - Directly modify their values, such as:
@@ -25,14 +26,14 @@ First obtain the resourceName and deployName, and log in to the Azure portal:
 const resourceName="codegpt"
 
   const mapper:any = {
-    'gpt-3.5-turbo': 'gpt35',
+    'gpt-3.5-turbo': 'gpt3',
     'gpt-4': 'gpt4' 
   };
 ```
 Other map rules can be continued directly in this format.
 - **OR** go to the Cloudflare Worker console, navigate to Workers script > Settings > Add variable under Environment Variables.
 
-<img width="777" src="https://user-images.githubusercontent.com/1295315/233124125-1ea95665-ffab-4b5c-a7ba-26f31f1bb0b3.png" alt="env" />
+<img width="777" src="https://user-images.githubusercontent.com/1295315/233384224-aa6581f0-26a4-49cf-ae25-4dfb466143da.png" alt="env" />
 
 ## Client
 Take OpenCat as an example: fill in the custom API domain name with the domain name bound in step 6:

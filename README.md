@@ -28,9 +28,9 @@
 
 ### 使用说明
 
-先得到 resourceName 和 deployName, 登录到Azure的后台:
+先得到 resourceName 和 deployment mapper, 登录到Azure的后台:
 
-![azure](https://user-images.githubusercontent.com/1295315/229705215-e0556c99-957f-4d98-99a6-1c51254110b9.png)
+<img width="777" src="https://user-images.githubusercontent.com/1295315/233124125-1ea95665-ffab-4b5c-a7ba-26f31f1bb0b3.png" alt="env" />
 
 #### 这里有两种做法:
 - 直接修改他们的值, 如:
@@ -40,15 +40,16 @@ const resourceName="codegpt"
 
 // deployment model mapper
 const mapper = {
-     'gpt-3.5-turbo': 'gpt35',
+     'gpt-3.5-turbo': 'gpt3',
      'gpt-4': 'gpt4' 
    };
 其他的map规则直接按这样的格式续写即可
 ```
 - 或者通过 cloudflare worker 控制台, 进入 Workers script > Settings > Add variable under Environment Variables.
-<img width="777" src="https://user-images.githubusercontent.com/1295315/233124125-1ea95665-ffab-4b5c-a7ba-26f31f1bb0b3.png" alt="env" />
 
-### 客户端 
+  <img width="777" src="https://user-images.githubusercontent.com/1295315/233384224-aa6581f0-26a4-49cf-ae25-4dfb466143da.png" alt="env" />
+
+### 客户端
 以 OpenCat 为例: 自定义 API 域名填写 第六步绑定的域名:
 
 <img width="339" src="https://user-images.githubusercontent.com/1295315/229820705-ab2ad1d1-8795-4670-97b4-16a0f9fdebba.png" alt="opencat" />
