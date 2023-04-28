@@ -11,7 +11,7 @@
 - 我没有自己的域名可以使用吗?
     - 也可以, 参考: https://github.com/haibbo/cf-openai-azure-proxy/issues/3
 - 实现打印机模式：
-    - Azure OpenAI Service's 回复是一段一段回复的（当前仅GPT-4有此问题， GPT-3的问题Azure已经解决）
+    - Azure OpenAI Service's 回复是一段一段回复的
     - 返回给客户端的时候， 本项目拆出一条条的消息, 依次给， 达到打印机模式
 - 项目也支持 Docker 部署（基于 wrangler）
 
