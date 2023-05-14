@@ -1,5 +1,6 @@
 // The deployment name you chose when you deployed the model.
-const deployName = 'chat-bison-001';
+const chatmodel = 'chat-bison-001';
+const textmodel = 'text-bison-001';
 
 addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
@@ -13,8 +14,10 @@ async function handleRequest(request) {
   const url = new URL(request.url);
   if (url.pathname === '/v1/chat/completions') {
     var path = "generateMessage"
+    var deployName = chatmodel;
   } else if (url.pathname === '/v1/completions') {
     var path = "generateText"
+    var deployName = textmodel;
   } else {
     return new Response('404 Not Found', { status: 404 })
   }
@@ -26,9 +29,7 @@ async function handleRequest(request) {
 
   const authKey = request.headers.get('Authorization');
   if (!authKey) {
-    return new Response("Not allowed", {
-      status: 403
-    });
+    return new Response("Not allowed", { status: 403 });
   }
 
   // Remove 'Bearer ' from the start of authKey
@@ -36,12 +37,15 @@ async function handleRequest(request) {
 
   const fetchAPI = `https://generativelanguage.googleapis.com/v1beta2/models/${deployName}:${path}?key=${apiKey}`
 
-
   // Transform request body from OpenAI to PaLM format
   const transformedBody = {
+    temperature: body?.temperature,
+    candidateCount: body?.n,
+    topP: body?.top_p,
     prompt: {
-      messages: body?.messages?.map(msg => ({
-        author: msg.role === 'user' ? '0' : '1',
+      context: body?.messages?.find(msg => msg.role === 'system')?.content,
+      messages: body?.messages?.filter(msg => msg.role !== 'system').map(msg => ({
+        // author: msg.role === 'user' ? '0' : '1',
         content: msg.content,
       })),
     },
@@ -95,7 +99,7 @@ function streamResponse(response, writable) {
       choices: [{
         index: response.choices[0].index,
         delta: { ...response.choices[0].message, content: chunk },
-        finish_reason: null
+        finish_reason: i === chunks.length - 1 ? 'stop' : null // Set 'stop' for the last chunk
       }],
       usage: null
     };
@@ -109,10 +113,21 @@ function streamResponse(response, writable) {
   writer.close();
 }
 
+
 // Function to transform the response
 function transformResponse(palmData) {
+  // Check if the 'candidates' array exists and if it's not empty
+  if (!palmData.candidates || palmData.candidates.length === 0) {
+    // If it doesn't exist or is empty, create a default candidate message
+    palmData.candidates = [
+      {
+        "author": "1",
+        "content": "Ooops, the model returned nothing"
+      }
+    ];
+  }
+
   return {
-    // id: 'chatcmpl-' + Math.random().toString(36).substring(2), // Generate a random id
     id: "chatcmpl-QXlha2FBbmROaXhpZUFyZUF3ZXNvbWUK",
     object: 'chat.completion',
     created: Math.floor(Date.now() / 1000), // Current Unix timestamp
@@ -133,9 +148,8 @@ function transformResponse(palmData) {
   };
 }
 
-
 async function handleOPTIONS(request) {
-    return new Response(null, {
+    return new Response("pong", {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': '*',
