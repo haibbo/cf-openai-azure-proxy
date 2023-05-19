@@ -60,7 +60,9 @@ async function handleRequest(request) {
     body: typeof body === 'object' ? JSON.stringify(body) : '{}',
   };
 
-  const response = await fetch(fetchAPI, payload);
+  let response = await fetch(fetchAPI, payload);
+  response = new Response(response.body, response);
+  response.headers.set("Access-Control-Allow-Origin", "*");
 
   if (body?.stream != true){
     return response
