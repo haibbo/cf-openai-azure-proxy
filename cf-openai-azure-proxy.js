@@ -1,10 +1,12 @@
+
 // The name of your Azure OpenAI Resource.
 const resourceName=RESOURCE_NAME
 
 // The deployment name you chose when you deployed the model.
 const mapper = {
     'gpt-3.5-turbo': DEPLOY_NAME_GPT35,
-    'gpt-4': DEPLOY_NAME_GPT4
+    'gpt-4': DEPLOY_NAME_GPT4,
+    'text-embedding-ada-002': DEPLOY_NAME_EMBEDDING
 };
 
 const apiVersion="2023-03-15-preview"
@@ -23,8 +25,17 @@ async function handleRequest(request) {
     var path="chat/completions"
   } else if (url.pathname === '/v1/completions') {
     var path="completions"
+  } else if (url.pathname === '/v1/embeddings') {
+    var path="embeddings"
   } else if (url.pathname === '/v1/models') {
     return handleModels(request)
+  } else if (url.pathname === '/v1/moderations') {
+    const json = JSON.stringify({"id": "modr-placeholder",
+      "model": "text-moderation-001",
+      "results": [{"flagged": false},]}, null, 2);
+    return new Response(json, {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } else {
     return new Response('404 Not Found', { status: 404 })
   }
@@ -86,7 +97,7 @@ async function stream(readable, writable) {
   // const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-// let decodedValue = decoder.decode(value);
+  // let decodedValue = decoder.decode(value);
   const newline = "\n";
   const delimiter = "\n\n"
   const encodedNewline = encoder.encode(newline);
@@ -162,4 +173,3 @@ async function handleOPTIONS(request) {
       }
     })
 }
-
