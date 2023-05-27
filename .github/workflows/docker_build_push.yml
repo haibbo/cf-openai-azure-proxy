@@ -52,6 +52,7 @@ jobs:
           docker run -d -p 8787:8787 -t cf-azure-openai-proxy \
           --env RESOURCE_NAME=codegpt \
           --env DEPLOY_NAME=gpt3 \
+          --env DEPLOY_NAME_GPT4=gpt4 \
           haibbo/cf-openai-azure-proxy:latest
           ```
 
