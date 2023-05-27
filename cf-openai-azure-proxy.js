@@ -23,7 +23,7 @@ async function handleRequest(request) {
     var path="chat/completions"
   } else if (url.pathname.endsWith('/v1/completions')) {
     var path="completions"
-  } else if (url.pathname.endsWith('/v1/models') ) {
+  } else if (url.pathname.endsWith('/v1/models')) {
     return handleModels(request)
   } else {
     return new Response('404 Not Found', { status: 404 })
