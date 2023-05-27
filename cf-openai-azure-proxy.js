@@ -103,7 +103,7 @@ async function stream(readable, writable) {
     // Loop through all but the last line, which may be incomplete.
     for (let i = 0; i < lines.length - 1; i++) {
       await writer.write(encoder.encode(lines[i] + delimiter));
-      await sleep(30);
+      await sleep(20);
     }
 
     buffer = lines[lines.length - 1];
