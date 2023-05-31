@@ -19,11 +19,14 @@ async function handleRequest(request) {
   }
 
   const url = new URL(request.url);
-  if (url.pathname.endsWith('/v1/chat/completions')) {
+  if (url.pathname.startsWith("//")) {
+    url.pathname = url.pathname.replace('/',"")
+  }
+  if (url.pathname === '/v1/chat/completions') {
     var path="chat/completions"
-  } else if (url.pathname.endsWith('/v1/completions')) {
+  } else if (url.pathname === '/v1/completions') {
     var path="completions"
-  } else if (url.pathname.endsWith('/v1/models')) {
+  } else if (url.pathname === '/v1/models') {
     return handleModels(request)
   } else {
     return new Response('404 Not Found', { status: 404 })
