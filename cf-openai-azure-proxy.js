@@ -19,6 +19,9 @@ async function handleRequest(request) {
   }
 
   const url = new URL(request.url);
+  if (url.pathname.startsWith("//")) {
+    url.pathname = url.pathname.replace('/',"")
+  }
   if (url.pathname === '/v1/chat/completions') {
     var path="chat/completions"
   } else if (url.pathname === '/v1/completions') {
