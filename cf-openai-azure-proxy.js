@@ -58,7 +58,7 @@ async function handleRequest(request) {
     method: request.method,
     headers: {
       "Content-Type": "application/json",
-      "api-key": authKey.replace('Bearer ', ''),
+      "api-key": authKey.replace(/Bearer (sk-)?/, ''),
     },
     body: typeof body === 'object' ? JSON.stringify(body) : '{}',
   };
