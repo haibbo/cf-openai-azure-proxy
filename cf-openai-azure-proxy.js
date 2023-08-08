@@ -69,8 +69,8 @@ async function handleRequest(request) {
     response = new Response(response.body, response);
     response.headers.set("Access-Control-Allow-Origin", "*");
   } catch (e) {
-    console.error(e.message);
-    response = new Response("An error occurred when processing your request, please try again later", {
+    console.error(e)
+    response = new Response(`An error occurred when processing your request, please try again later. Error: ${e.message} ${response?.status}`, {
       status: 500
     });
   }
