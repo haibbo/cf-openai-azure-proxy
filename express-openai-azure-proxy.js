@@ -102,7 +102,7 @@ app.all('/v1/models', async (req, res) => {
   }
 
   const json = JSON.stringify(data, null, 2);
-  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Content-Type', 'application/json');
   res.send(json);
 });
 
@@ -168,7 +168,7 @@ function getPayload(req, res, url) {
 async function handleResponse(req, res, axiosResponse) {
   // Set headers and status
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Type', 'text/event-stream');
   res.status(axiosResponse.status);
 
   // Pipe the response stream directly into the response
