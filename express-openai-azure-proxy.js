@@ -102,7 +102,7 @@ app.all('/v1/models', async (req, res) => {
   }
 
   const json = JSON.stringify(data, null, 2);
-  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Type', 'text/event-stream');
   res.send(json);
 });
 
