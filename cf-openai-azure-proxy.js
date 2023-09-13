@@ -6,10 +6,10 @@ const mapper = {
     'gpt-3.5-turbo': DEPLOY_NAME_GPT35,
     'gpt-3.5-turbo-16k': DEPLOY_NAME_GPT35_16K,
     'gpt-4': DEPLOY_NAME_GPT4,
-    'gpt-4-16k': DEPLOY_NAME_GPT4_16K,
+    'gpt-4-32k': DEPLOY_NAME_GPT4_32K,
 };
 
-const apiVersion="2023-07-01-preview"
+const apiVersion="2023-08-01-preview"
 
 let isDall = false
 
