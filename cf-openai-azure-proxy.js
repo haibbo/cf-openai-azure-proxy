@@ -9,6 +9,8 @@ const mapper = {
 
 const apiVersion="2023-08-01-preview"
 
+let isDall = false
+
 addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
 });
@@ -24,6 +26,9 @@ async function handleRequest(request) {
   }
   if (url.pathname === '/v1/chat/completions') {
     var path="chat/completions"
+  } else if (url.pathname === '/v1/images/generations') {
+    var path="images/generations:submit"
+    isDall=true
   } else if (url.pathname === '/v1/completions') {
     var path="completions"
   } else if (url.pathname === '/v1/models') {
@@ -40,12 +45,17 @@ async function handleRequest(request) {
   const modelName = body?.model;  
   const deployName = mapper[modelName] || '' 
 
-  if (deployName === '') {
+  if (!isDall && deployName === '') {
     return new Response('Missing model mapper', {
         status: 403
     });
   }
-  const fetchAPI = `https://${resourceName}.openai.azure.com/openai/deployments/${deployName}/${path}?api-version=${apiVersion}`
+
+  let fetchAPI = `https://${resourceName}.openai.azure.com/openai/deployments/${deployName}/${path}?api-version=${apiVersion}`
+
+  if (isDall) {
+    fetchAPI = `https://${resourceName}.openai.azure.com/openai/${path}?api-version=${apiVersion}`
+  }
 
   const authKey = request.headers.get('Authorization');
   if (!authKey) {
@@ -54,18 +64,36 @@ async function handleRequest(request) {
     });
   }
 
+  const headers = {
+    "Content-Type": "application/json",
+    "api-key": authKey.replace('Bearer ', ''),
+  }
+
   const payload = {
     method: request.method,
-    headers: {
-      "Content-Type": "application/json",
-      "api-key": authKey.replace('Bearer ', ''),
-    },
+    headers,
     body: typeof body === 'object' ? JSON.stringify(body) : '{}',
   };
 
   let response = await fetch(fetchAPI, payload);
   response = new Response(response.body, response);
   response.headers.set("Access-Control-Allow-Origin", "*");
+
+  if (isDall) {
+    const operationLocation = response.headers.get("operation-location")
+    const timeOut = 60000
+    const start = Date.now()
+
+    while (true) {
+      await sleep(1000)
+      const res = await fetch(operationLocation, {headers});
+      const jsonRes = await res.json();
+      if (jsonRes.status === "succeeded" || jsonRes.status === "failed" || Date.now() - start >= timeOut) {
+        console.log(jsonRes)
+        return new Response(JSON.stringify(jsonRes.result), res)
+      }
+    }
+  }
 
   if (body?.stream != true){
     return response
@@ -165,4 +193,3 @@ async function handleOPTIONS(request) {
       }
     })
 }
-
