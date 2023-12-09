@@ -72,10 +72,18 @@ async function handleRequest(request) {
     body: typeof body === 'object' ? JSON.stringify(body) : '{}',
   };
 
-  let response = await fetch(fetchAPI, payload);
-  response = new Response(response.body, response);
-  response.headers.set("Access-Control-Allow-Origin", "*");
-
+  let response 
+  try {
+    response = await fetch(fetchAPI, payload);
+    response = new Response(response.body, response);
+    response.headers.set("Access-Control-Allow-Origin", "*");
+  } catch (e) {
+    console.error(e)
+    response = new Response(`An error occurred when processing your request, please try again later. Error: ${e.message}`, {
+      status: 500
+    });
+  }
+  
   if (body?.stream != true){
     return response
   } 
