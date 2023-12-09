@@ -6,6 +6,7 @@ const mapper = {
     'gpt-3.5-turbo': DEPLOY_NAME_GPT35,
     'gpt-3.5-turbo-0613': DEPLOY_NAME_GPT35,
     'gpt-4': DEPLOY_NAME_GPT4,
+    "dall-e-3": typeof DEPLOY_NAME_DALLE3 !== 'undefined' ? DEPLOY_NAME_DALLE3 : "dalle3",
 };
 
 const apiVersion="2023-12-01-preview"
@@ -25,6 +26,8 @@ async function handleRequest(request) {
   }
   if (url.pathname === '/v1/chat/completions') {
     var path="chat/completions"
+  } else if (url.pathname === '/v1/images/generations') {
+    var path="images/generations"
   } else if (url.pathname === '/v1/completions') {
     var path="completions"
   } else if (url.pathname === '/v1/models') {
