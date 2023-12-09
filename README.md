@@ -5,6 +5,13 @@
 
 > 大多数 OpenAI 客户端不支持 Azure OpenAI Service，但Azure OpenAI Service的申请和绑卡都非常简单，并且还提供了免费的额度。此脚本使用免费的 Cloudflare Worker 作为代理，使得支持 OpenAI 的客户端可以直接使用 Azure OpenAI Service。
 
+### 支持模型:
+- GPT-3
+- GPT-4
+- DALL-E-3
+  
+模型子类添加非常容易, 参考下面的使用说明
+  
 ### 项目说明:
 - 我没有服务器可以使用吗?
     - 这段脚本跑在Cloudflare Worker, 不需要服务器, 不需要绑卡, 每天10W次请求 免费
@@ -41,7 +48,8 @@ const resourceName="codegpt"
 // deployment model mapper
 const mapper = {
      'gpt-3.5-turbo': 'gpt3',
-     'gpt-4': 'gpt4' 
+     'gpt-4': 'gpt4',
+     'dall-e-3': 'dalle3' 
    };
 其他的map规则直接按这样的格式续写即可
 ```
