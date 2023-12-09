@@ -4,6 +4,7 @@ const resourceName=RESOURCE_NAME
 // The deployment name you chose when you deployed the model.
 const mapper = {
     'gpt-3.5-turbo': DEPLOY_NAME_GPT35,
+    'gpt-3.5-turbo-0613': DEPLOY_NAME_GPT35,
     'gpt-4': DEPLOY_NAME_GPT4,
 };
 
