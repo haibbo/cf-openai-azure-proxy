@@ -5,8 +5,13 @@ const resourceName=RESOURCE_NAME
 const mapper = {
     'gpt-3.5-turbo': DEPLOY_NAME_GPT35,
     'gpt-3.5-turbo-0613': DEPLOY_NAME_GPT35,
+    'gpt-3.5-turbo-1106': DEPLOY_NAME_GPT35,
+    'gpt-3.5-turbo-16k': DEPLOY_NAME_GPT35,
     'gpt-4': DEPLOY_NAME_GPT4,
-    "dall-e-3": typeof DEPLOY_NAME_DALLE3 !== 'undefined' ? DEPLOY_NAME_DALLE3 : "dalle3",
+    'gpt-4-0613': DEPLOY_NAME_GPT4,
+    'gpt-4-1106-preview': DEPLOY_NAME_GPT4,
+    'gpt-4-32k': DEPLOY_NAME_GPT4,
+    'dall-e-3': typeof DEPLOY_NAME_DALLE3 !== 'undefined' ? DEPLOY_NAME_DALLE3 : "dalle3",
 };
 
 const apiVersion="2023-12-01-preview"
