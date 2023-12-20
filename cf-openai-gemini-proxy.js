@@ -28,10 +28,6 @@ async function handleRequest(request) {
     body = await request.json();
   }
 
-  // if(body?.stream === true) {
-  //   path = "streamGenerateContent";
-  // }
-
   const authKey = request.headers.get('Authorization');
   if (!authKey) {
     return new Response("Not allowed", { status: 403 });
@@ -82,10 +78,9 @@ async function handleRequest(request) {
   // Transform response from Gemini to OpenAI format
 
   // console.log(transformedResponse);
+  const transformedResponse = transformResponse(geminiData);
 
-  // if (body?.stream != true) 
-  {
-    const transformedResponse = transformResponse(geminiData);
+  if (body?.stream != true) {
     return new Response(JSON.stringify(transformedResponse), {
       headers: {
         'Content-Type': 'application/json',
@@ -94,8 +89,46 @@ async function handleRequest(request) {
         'Access-Control-Allow-Headers': '*'
       }
     });
+  } else {
+    let { readable, writable } = new TransformStream();
+    streamResponse(transformedResponse, writable);
+    return new Response(readable, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Headers': '*'
+      }
+    });
   }
+}
 
+function streamResponse(response, writable) {
+  let encoder = new TextEncoder();
+  let writer = writable.getWriter();
+
+  let content = response.choices[0].message.content;
+
+  let chunks = content.split("\n\n") || [];
+  chunks.forEach((chunk, i) => {
+    let chunkResponse = {
+      ...response,
+      object: "chat.completion.chunk",
+      choices: [{
+        index: response.choices[0].index,
+        delta: { ...response.choices[0].message, content: chunk },
+        finish_reason: i === chunks.length - 1 ? 'stop' : null // Set 'stop' for the last chunk
+      }],
+      usage: null
+    };
+
+    writer.write(encoder.encode(`data: ${JSON.stringify(chunkResponse)}\n\n`));
+  });
+
+  // Write the done signal
+  writer.write(encoder.encode(`data: [DONE]\n`));
+
+  writer.close();
 }
 
 // Function to transform the response
