@@ -10,9 +10,17 @@ async function handleRequest(request) {
   if (request.method === 'OPTIONS') {
     return handleOPTIONS(request)
   }
+  const url = new URL(request.url);
+  if (url.pathname === '/v1/chat/completions' || url.pathname === '/v1/completions') {
+    return handleRequestWithTransform(request, transformCommonRequest, transformCommonResponse);
+  } else if (url.pathname === '/v1/embeddings') {
+    return handleRequestWithTransform(request, transformEmbeddingRequest, transformEmbeddingResponse);
+  } else {
+    return new Response('404 Not Found for ' + url.pathname, { status: 404 })
+  }
+}
 
-
-
+function transformURL(request) {
   const url = new URL(request.url);
   if (url.pathname === '/v1/chat/completions') {
     var path = "generateContent"
@@ -23,54 +31,39 @@ async function handleRequest(request) {
   } else if (url.pathname === '/v1/embeddings') {
     var path = "embedContent"
     var deployName = embeddmodel;
-  }
-  else {
-    return new Response('404 Not Found', { status: 404 })
-  }
-
-  let body;
-  if (request.method === 'POST') {
-    body = await request.json();
+  } else {
+    return null;
   }
 
   const authKey = request.headers.get('Authorization');
-  if (!authKey) {
-    return new Response("Not allowed", { status: 403 });
+  const apiKey = authKey.replace('Bearer ', '');
+  return `https://generativelanguage.googleapis.com/v1/models/${deployName}:${path}?key=${apiKey}`
+}
+
+async function handleRequestWithTransform(request, transformRequestBody, transformResponseBody) {
+  let body = await request.json();
+  const fetchAPI = transformURL(request);
+  if (fetchAPI === null) {
+    return new Response('404 Not Found', { status: 404 })
   }
 
-  // Remove 'Bearer ' from the start of authKey
-  const apiKey = authKey.replace('Bearer ', '');
 
-  const fetchAPI = `https://generativelanguage.googleapis.com/v1/models/${deployName}:${path}?key=${apiKey}`
+  const transformedBody = transformRequestBody(body);
+  const payload = {
+    method: request.method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(transformedBody),
+  };
+  const response = await fetch(fetchAPI, payload);
+  if (!response.ok) {
+    return new Response(response.statusText, { status: response.status });
+  }
+  const geminiData = await response.json();
+  const transformedResponse = transformResponseBody(geminiData);
 
-  if (deployName === embeddmodel) {
-    const transformedBody = {
-      "model": "models/embedding-001",
-      "content": {
-        "parts": [
-          {
-            "text": body?.input
-          }
-        ]
-      }
-    };
-    const payload = {
-      method: request.method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(transformedBody),
-    };
-    const response = await fetch(fetchAPI, payload);
-    if (!response.ok) {
-      return new Response(response.statusText, { status: response.status });
-    }
-    const geminiData = await response.json();
-    const transformedResponse = {
-      "object": "embedding",
-      "embedding": geminiData?.embedding?.values || [],
-      "index": 0
-    };
+  if (body?.stream != true) {
     return new Response(JSON.stringify(transformedResponse), {
       headers: {
         'Content-Type': 'application/json',
@@ -80,57 +73,19 @@ async function handleRequest(request) {
       }
     });
   } else {
-
-    // Transform request body from OpenAI to Gemini format
-    const transformedBody = transform2GeminiRequest(body);
-
-    const payload = {
-      method: request.method,
+    let { readable, writable } = new TransformStream();
+    streamResponse(transformedResponse, writable);
+    return new Response(readable, {
       headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(transformedBody),
-    };
-
-    const response = await fetch(fetchAPI, payload);
-
-    // Check if the response is valid
-    if (!response.ok) {
-      return new Response(response.statusText, { status: response.status });
-    }
-
-    const geminiData = await response.json();
-
-    // console.log(geminiData);
-
-    // Transform response from Gemini to OpenAI format
-
-    // console.log(transformedResponse);
-    const transformedResponse = transformResponse(geminiData);
-
-    if (body?.stream != true) {
-      return new Response(JSON.stringify(transformedResponse), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': '*',
-          'Access-Control-Allow-Headers': '*'
-        }
-      });
-    } else {
-      let { readable, writable } = new TransformStream();
-      streamResponse(transformedResponse, writable);
-      return new Response(readable, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': '*',
-          'Access-Control-Allow-Headers': '*'
-        }
-      });
-    }
+        'Content-Type': 'text/event-stream',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Headers': '*'
+      }
+    });
   }
 }
+
 
 // 现在 gemini 还不支持 function，所以这个函数暂时没用
 function convert2GeminiFunctionDeclaration(tools, tool_choice) {
@@ -164,7 +119,28 @@ function convert2GeminiFunctionDeclaration(tools, tool_choice) {
   return result;
 }
 
-function transform2GeminiRequest(body) {
+function transformEmbeddingRequest(body) {
+  return {
+    "model": "models/embedding-001",
+    "content": {
+      "parts": [
+        {
+          "text": body?.input
+        }
+      ]
+    }
+  };
+}
+
+function transformEmbeddingResponse(geminiData) {
+  return {
+    "object": "embedding",
+    "embedding": geminiData?.embedding?.values || [],
+    "index": 0
+  };
+}
+
+function transformCommonRequest(body) {
 
   let messages = body?.messages || [];
   if (messages.length === 0) {
@@ -212,36 +188,8 @@ function transform2GeminiRequest(body) {
   return ret;
 }
 
-function streamResponse(response, writable) {
-  let encoder = new TextEncoder();
-  let writer = writable.getWriter();
-
-  let content = response.choices[0].message.content;
-
-  let chunks = content.split("\n\n") || [];
-  chunks.forEach((chunk, i) => {
-    let chunkResponse = {
-      ...response,
-      object: "chat.completion.chunk",
-      choices: [{
-        index: response.choices[0].index,
-        delta: { ...response.choices[0].message, content: chunk },
-        finish_reason: i === chunks.length - 1 ? 'stop' : null // Set 'stop' for the last chunk
-      }],
-      usage: null
-    };
-
-    writer.write(encoder.encode(`data: ${JSON.stringify(chunkResponse)}\n\n`));
-  });
-
-  // Write the done signal
-  writer.write(encoder.encode(`data: [DONE]\n`));
-
-  writer.close();
-}
-
 // Function to transform the response
-function transformResponse(GeminiData) {
+function transformCommonResponse(GeminiData) {
   // Check if the 'candidates' array exists and if it's not empty
   if (!GeminiData.candidates) {
     // If it doesn't exist or is empty, create a default candidate message
@@ -303,6 +251,37 @@ function transformResponse(GeminiData) {
 
   return ret;
 }
+
+
+function streamResponse(response, writable) {
+  let encoder = new TextEncoder();
+  let writer = writable.getWriter();
+
+  let content = response.choices[0].message.content;
+
+  let chunks = content.split("\n\n") || [];
+  chunks.forEach((chunk, i) => {
+    let chunkResponse = {
+      ...response,
+      object: "chat.completion.chunk",
+      choices: [{
+        index: response.choices[0].index,
+        delta: { ...response.choices[0].message, content: chunk },
+        finish_reason: i === chunks.length - 1 ? 'stop' : null // Set 'stop' for the last chunk
+      }],
+      usage: null
+    };
+
+    writer.write(encoder.encode(`data: ${JSON.stringify(chunkResponse)}\n\n`));
+  });
+
+  // Write the done signal
+  writer.write(encoder.encode(`data: [DONE]\n`));
+
+  writer.close();
+}
+
+
 
 async function handleOPTIONS(request) {
   return new Response("pong", {
