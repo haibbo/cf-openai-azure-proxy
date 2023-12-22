@@ -39,22 +39,7 @@ async function handleRequest(request) {
   const fetchAPI = `https://generativelanguage.googleapis.com/v1/models/${deployName}:${path}?key=${apiKey}`
 
   // Transform request body from OpenAI to Gemini format
-  const transformedBody = {
-    // body?.messages 是一个数组，每个元素是一个对象，包含 role 和 content 两个属性
-    // 目标是把这个数组转换成 {} 
-    // if role is 'system', then delete the message 
-
-    contents: body?.messages?.filter((message) => message.role !== 'system').map(message => ({
-      role: message.role === "assistant" ? "model" : "user",
-      parts: { text: message.content },
-    })),
-
-    generationConfig: {
-      temperature: body?.temperature,
-      candidateCount: body?.n,
-      topP: body?.top_p,
-    }
-  };
+  const transformedBody = transform2GeminiRequest(body);
 
   const payload = {
     method: request.method,
@@ -101,6 +86,54 @@ async function handleRequest(request) {
       }
     });
   }
+}
+
+function transform2GeminiRequest(body) {
+
+  let messages = body?.messages || [];
+  if (messages.length === 0) {
+    messages.push({ role: 'user', content: '' });
+  } else {
+    // 如果相邻的两个 message 的 role 相同，那么就把它们合并成一个 message
+    let mergedMessages = [];
+    let lastRole = null;
+    messages.forEach((message) => {
+      if (message.role === 'system') {
+        message.role = 'user';
+      }else if(message.role === 'assistant'){
+        message.role = 'model';
+      }
+
+      if (lastRole === message.role) {
+        mergedMessages[mergedMessages.length - 1].content += message.content + '\n';
+      } else {
+        mergedMessages.push(message);
+      }
+      lastRole = message.role;
+    });
+
+    messages = mergedMessages;
+  }
+
+  var ret = {
+    // body?.messages 是一个数组，每个元素是一个对象，包含 role 和 content 两个属性
+    // 目标是把这个数组转换成 {} 
+    // if role is 'system', then delete the message 
+
+    contents: messages.map(message => ({
+      role: message.role,
+      parts: { text: message.content },
+    })),
+
+    generationConfig: {
+      temperature: body?.temperature,
+      candidateCount: body?.n,
+      topP: body?.top_p,
+    }
+  };
+
+  console.log(ret);
+  return ret;
 }
 
 function streamResponse(response, writable) {
