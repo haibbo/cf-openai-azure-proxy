@@ -1,5 +1,6 @@
 // The deployment name you chose when you deployed the model.
 const chatmodel = 'gemini-pro';
+const embeddmodel = 'embedding-001';
 
 addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
@@ -19,7 +20,11 @@ async function handleRequest(request) {
   } else if (url.pathname === '/v1/completions') {
     var path = "generateContent"
     var deployName = chatmodel;
-  } else {
+  } else if (url.pathname === '/v1/embeddings') {
+    var path = "embedContent"
+    var deployName = embeddmodel;
+  }
+  else {
     return new Response('404 Not Found', { status: 404 })
   }
 
@@ -38,34 +43,34 @@ async function handleRequest(request) {
 
   const fetchAPI = `https://generativelanguage.googleapis.com/v1/models/${deployName}:${path}?key=${apiKey}`
 
-  // Transform request body from OpenAI to Gemini format
-  const transformedBody = transform2GeminiRequest(body);
-
-  const payload = {
-    method: request.method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(transformedBody),
-  };
-
-  const response = await fetch(fetchAPI, payload);
-
-  // Check if the response is valid
-  if (!response.ok) {
-    return new Response(response.statusText, { status: response.status });
-  }
-
-  const geminiData = await response.json();
-
-  // console.log(geminiData);
-
-  // Transform response from Gemini to OpenAI format
-
-  // console.log(transformedResponse);
-  const transformedResponse = transformResponse(geminiData);
-
-  if (body?.stream != true) {
+  if (deployName === embeddmodel) {
+    const transformedBody = {
+      "model": "models/embedding-001",
+      "content": {
+        "parts": [
+          {
+            "text": body?.input
+          }
+        ]
+      }
+    };
+    const payload = {
+      method: request.method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transformedBody),
+    };
+    const response = await fetch(fetchAPI, payload);
+    if (!response.ok) {
+      return new Response(response.statusText, { status: response.status });
+    }
+    const geminiData = await response.json();
+    const transformedResponse = {
+      "object": "embedding",
+      "embedding": geminiData?.embedding?.values || [],
+      "index": 0
+    };
     return new Response(JSON.stringify(transformedResponse), {
       headers: {
         'Content-Type': 'application/json',
@@ -75,16 +80,55 @@ async function handleRequest(request) {
       }
     });
   } else {
-    let { readable, writable } = new TransformStream();
-    streamResponse(transformedResponse, writable);
-    return new Response(readable, {
+
+    // Transform request body from OpenAI to Gemini format
+    const transformedBody = transform2GeminiRequest(body);
+
+    const payload = {
+      method: request.method,
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': '*',
-        'Access-Control-Allow-Headers': '*'
-      }
-    });
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transformedBody),
+    };
+
+    const response = await fetch(fetchAPI, payload);
+
+    // Check if the response is valid
+    if (!response.ok) {
+      return new Response(response.statusText, { status: response.status });
+    }
+
+    const geminiData = await response.json();
+
+    // console.log(geminiData);
+
+    // Transform response from Gemini to OpenAI format
+
+    // console.log(transformedResponse);
+    const transformedResponse = transformResponse(geminiData);
+
+    if (body?.stream != true) {
+      return new Response(JSON.stringify(transformedResponse), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': '*',
+          'Access-Control-Allow-Headers': '*'
+        }
+      });
+    } else {
+      let { readable, writable } = new TransformStream();
+      streamResponse(transformedResponse, writable);
+      return new Response(readable, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': '*',
+          'Access-Control-Allow-Headers': '*'
+        }
+      });
+    }
   }
 }
 
