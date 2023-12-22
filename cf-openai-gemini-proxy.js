@@ -88,6 +88,38 @@ async function handleRequest(request) {
   }
 }
 
+// 现在 gemini 还不支持 function，所以这个函数暂时没用
+function convert2GeminiFunctionDeclaration(tools, tool_choice) {
+  if (tools === undefined || tool_choice === undefined || tool_choice === "none") {
+    return [];
+  }
+
+  // TODO - add support for tool_choice
+
+  const result = [];
+  const functionDeclarations = [];
+
+  for (const tool of tools) {
+    if (tool.type === "function") {
+      var functionDeclaration = {
+        name: tool.function.name,
+        description: tool.function.description,
+        parameters: tool.function.parameters,
+      };
+      functionDeclarations.push(functionDeclaration);
+    }
+  }
+
+  if (functionDeclarations.length > 0) {
+    const toolObject = {
+      functionDeclarations,
+    };
+    result.push(toolObject);
+  }
+
+  return result;
+}
+
 function transform2GeminiRequest(body) {
 
   let messages = body?.messages || [];
@@ -100,7 +132,7 @@ function transform2GeminiRequest(body) {
     messages.forEach((message) => {
       if (message.role === 'system') {
         message.role = 'user';
-      }else if(message.role === 'assistant'){
+      } else if (message.role === 'assistant') {
         message.role = 'model';
       }
 
