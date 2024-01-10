@@ -1,6 +1,7 @@
 // The deployment name you chose when you deployed the model.
-const chatmodel = 'text-generation';
-const embeddmodel = 'embedding-001';
+const base = 'https://dashscope.aliyuncs.com/api/v1/services';
+const chatmodel = 'aigc/text-generation';
+const embeddmodel = 'embeddings/text-embedding';
 
 addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
@@ -22,19 +23,14 @@ async function handleRequest(request) {
 
 function transformURL(request) {
   const url = new URL(request.url);
-  if (url.pathname === '/v1/chat/completions') {
-    var path = "generation"
-    var deployName = chatmodel;
-  } else if (url.pathname === '/v1/completions') {
-    var path = "generation"
-    var deployName = chatmodel;
+  if (url.pathname === '/v1/chat/completions' || url.pathname === '/v1/completions') {
+    return `${base}/${chatmodel}/generation`
   } else if (url.pathname === '/v1/embeddings') {
-    return null;
+    return `${base}/${embeddmodel}/text-embedding`
   } else {
     return null;
   }
 
-  return `https://dashscope.aliyuncs.com/api/v1/services/aigc/${deployName}/${path}`
 }
 
 async function handleRequestWithTransform(request, transformRequestBody, transformResponseBody) {
@@ -63,8 +59,7 @@ async function handleRequestWithTransform(request, transformRequestBody, transfo
   }
   const response_data = await response.json();
 
-  if(response_data?.code)
-  {
+  if (response_data?.code) {
     // 出现了错误，返回400
     return new Response(JSON.stringify(transformedBody) + '\n' + JSON.stringify(response_data) + '\n', {
       headers: {
@@ -138,24 +133,51 @@ function convert2GeminiFunctionDeclaration(tools, tool_choice) {
   return result;
 }
 
-function transformEmbeddingRequest(body) {
-  return {
-    "model": "models/embedding-001",
-    "content": {
-      "parts": [
-        {
-          "text": body?.input
-        }
-      ]
-    }
-  };
+function transformEmbeddingRequest(openaiRequest) {
+  // 判断是否是array
+  if (Array.isArray(openaiRequest?.input)) {
+    return {
+      "model": "text-embedding-v1",
+      "input": { "texts": openaiRequest?.input },
+      "parameters": {
+        "text_type": "query"
+      }
+    };
+  } else if (typeof openaiRequest?.input === 'string') {
+    return {
+      "model": "text-embedding-v1",
+      "input": { "texts": [openaiRequest?.input] },
+      "parameters": {
+        "text_type": "query"
+      }
+    };
+  } else
+    return {
+      "model": "text-embedding-v1",
+      "input": { "texts": [] },
+      "parameters": {
+        "text_type": "query"
+      }
+    };
 }
 
-function transformEmbeddingResponse(geminiData) {
+function transformEmbeddingResponse(qwenResponse) {
+  const { output: { embeddings }, usage } = qwenResponse;
+
+  const data = embeddings.map((item) => ({
+    object: "embedding",
+    embedding: item.embedding,
+    index: item.text_index
+  }));
+
   return {
-    "object": "embedding",
-    "embedding": geminiData?.embedding?.values || [],
-    "index": 0
+    object: "list",
+    data,
+    model: "text-embedding-ada-002",
+    usage: {
+      prompt_tokens: usage.total_tokens,
+      total_tokens: usage.total_tokens
+    }
   };
 }
 
