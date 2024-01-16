@@ -12,6 +12,7 @@ const mapper = {
     'gpt-4-1106-preview': DEPLOY_NAME_GPT4,
     'gpt-4-32k': DEPLOY_NAME_GPT4,
     'dall-e-3': typeof DEPLOY_NAME_DALLE3 !== 'undefined' ? DEPLOY_NAME_DALLE3 : "dalle3",
+    'text-embedding-ada-002': DEPLOY_NAME_ADA,
 };
 
 const apiVersion="2023-12-01-preview"
@@ -35,6 +36,8 @@ async function handleRequest(request) {
     var path="images/generations"
   } else if (url.pathname === '/v1/completions') {
     var path="completions"
+  } else if (url.pathname === '/v1/embeddings'){
+    var path = "embeddings"
   } else if (url.pathname === '/v1/models') {
     return handleModels(request)
   } else {
