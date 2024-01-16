@@ -12,7 +12,6 @@ const mapper = {
     'gpt-4-1106-preview': DEPLOY_NAME_GPT4,
     'gpt-4-32k': DEPLOY_NAME_GPT4,
     'dall-e-3': typeof DEPLOY_NAME_DALLE3 !== 'undefined' ? DEPLOY_NAME_DALLE3 : "dalle3",
-    'text-embedding-ada-002': DEPLOY_NAME_ADA,
 };
 
 const apiVersion="2023-12-01-preview"
